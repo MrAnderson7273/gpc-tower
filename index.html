@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>GPC Tower</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="GPC Tower">
+<meta name="theme-color" content="#0c0c0e"><link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-512.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>html,body{margin:0;background:#000;height:100%;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+#gate{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom);background:radial-gradient(ellipse at 50% 35%,#1b1814,#000 70%);color:#F5F5F7;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Inter,system-ui,sans-serif}
+#gate img{width:84px;height:84px;border-radius:20px}#gate h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.02em}#gate p{margin:0;color:rgba(235,235,245,.6);font-size:15px;text-align:center}
+#pin{width:220px;font-size:28px;letter-spacing:12px;text-align:center;padding:12px 10px;border-radius:16px;border:1px solid rgba(201,169,110,.5);background:rgba(28,28,30,.8);color:#fff;outline:none}
+#err{color:#FCA5A5;font-size:14px;min-height:18px}#go{background:#C9A96E;color:#0a0a0a;border:0;border-radius:14px;padding:12px 34px;font-size:17px;font-weight:600}
+</style></head><body>
+<div id="gate"><img src="apple-touch-icon.png" alt=""><h1>GPC Tower</h1><p>Garcia Plata Co. · enter passcode</p>
+<input id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" aria-label="Passcode">
+<button id="go">Unlock</button><div id="err"></div></div>
+<div id="r"></div>
+<script>
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function unlock(pass){const d=await (await fetch('app.enc.json')).json();
+ const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+ const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(d.salt),iterations:d.iter,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+ const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(d.iv)},key,b64(d.ct));return new TextDecoder().decode(pt);}
+async function go(){const p=document.getElementById('pin').value.trim();const e=document.getElementById('err');e.textContent='Unlocking…';
+ try{const js=await unlock(p);sessionStorage.setItem('gpc_ok',p);document.getElementById('gate').remove();(0,eval)(js);}catch(x){e.textContent='Wrong passcode';}}
+document.getElementById('go').onclick=go;document.getElementById('pin').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+const s=sessionStorage.getItem('gpc_ok');if(s){document.getElementById('pin').value=s;go();}
+if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js');
+</script></body></html>
