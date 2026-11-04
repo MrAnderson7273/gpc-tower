@@ -25,5 +25,5 @@ async function go(){const p=document.getElementById('pin').value.trim();const e=
  try{const js=await unlock(p);sessionStorage.setItem('gpc_ok',p);document.getElementById('gate').remove();(0,eval)(js);}catch(x){e.textContent='Wrong passcode';}}
 document.getElementById('go').onclick=go;document.getElementById('pin').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
 const s=sessionStorage.getItem('gpc_ok');if(s){document.getElementById('pin').value=s;go();}
-if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js');
+if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update();});});
 </script></body></html>
